@@ -98,13 +98,9 @@ public class MainWindow {
 
         MenuItem newGame, replayGame, exit;
         newGame = new MenuItem("New Game");
-        newGame.setOnAction(event -> {
-            newGame();
-        });
+        newGame.setOnAction(event -> newGame());
         replayGame = new MenuItem("Replay Game");
-        replayGame.setOnAction(event -> {
-            replayGame();
-        });
+        replayGame.setOnAction(event -> replayGame());
         exit = new MenuItem("Exit");
         exit.setOnAction(event -> {
             Platform.exit();
@@ -115,14 +111,10 @@ public class MainWindow {
         CheckMenuItem cmi_firstClickLose, cmi_hint;
         cmi_firstClickLose = new CheckMenuItem("Allow first click lose");
         cmi_firstClickLose.setSelected(false);
-        cmi_firstClickLose.selectedProperty().addListener(listener -> {
-            isFirstClickLose = cmi_firstClickLose.isSelected();
-        });
+        cmi_firstClickLose.selectedProperty().addListener(listener -> isFirstClickLose = cmi_firstClickLose.isSelected());
         cmi_hint = new CheckMenuItem("Allow hints");
         cmi_hint.setSelected(true);
-        cmi_hint.selectedProperty().addListener(listener -> {
-            isHints = cmi_hint.isSelected();
-        });
+        cmi_hint.selectedProperty().addListener(listener -> isHints = cmi_hint.isSelected());
         settings.getItems().addAll(cmi_hint, cmi_firstClickLose);
 
         Menu choose = new Menu("Choose level");
@@ -152,9 +144,10 @@ public class MainWindow {
         root.getChildren().addAll(menuBar);
     }
 
-    public void changeLevel(String level, int rows, int cols) {
+    public void changeLevel(String level, int rows, int cols, int bombs) {
         CELLS_COUNT_HEIGHT = rows;
         CELLS_COUNT_WIDTH = cols;
+        flagCount = bombs;
         windowWidth = CELL_SIZE * CELLS_COUNT_WIDTH;
         windowHeight = CELL_SIZE * CELLS_COUNT_HEIGHT + MENU_BAR_HEIGHT + 45;
         chosenLevel = level;
@@ -179,15 +172,19 @@ public class MainWindow {
             default: flagCount = CELLS_COUNT_HEIGHT * CELLS_COUNT_WIDTH / 5;
         }
 
-        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++)
-            for (int j = 0; j < CELLS_COUNT_WIDTH; j++)
-                if (cells[i][j] != null)
+        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++) {
+            for (int j = 0; j < CELLS_COUNT_WIDTH; j++) {
+                if (cells[i][j] != null) {
                     if (!cells[i][j].name.equals("bomb")
                             && !(cells[i][j].name.equals("right_flag") && cells[i][j].isBombOnFlag)
-                            && !cells[i][j].name.equals("explosion"))
+                            && !cells[i][j].name.equals("explosion")) {
                         cells[i][j] = null;
-                    else
+                    } else {
                         cells[i][j] = new Cell(cloneImage(getImageView("bomb").getImage()), "bomb");
+                    }
+                }
+            }
+        }
         if (timeline != null) {
             timeline.stop();
             timeline = null;
@@ -198,7 +195,7 @@ public class MainWindow {
     }
 
     private ChangeListener<Boolean> setChangeListener(String level, int height, int width) {
-        return (observable, oldValue, newValue) -> changeLevel(level, height, width);
+        return (observable, oldValue, newValue) -> changeLevel(level, height, width, flagCount);
     }
 
     //load pictures
@@ -220,8 +217,9 @@ public class MainWindow {
 
     private ImageView getImageView(String name) {
         for (IView iv : imageViews) {
-            if (iv.name.equals(name))
+            if (iv.name.equals(name)) {
                 return iv.iv;
+            }
         }
         return null;
     }
@@ -238,9 +236,7 @@ public class MainWindow {
         smile.setY(CELL_SIZE * CELLS_COUNT_HEIGHT + MENU_BAR_HEIGHT + 5);
         smile.setX((CELL_SIZE * CELLS_COUNT_WIDTH - smile.getImage().getWidth()) / 2);
         smile.setSmooth(true);
-        smile.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            newGame();
-        });
+        smile.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> newGame());
 
         String s1 = "", s2 = "";
         if (CELLS_COUNT_WIDTH > 15) {
@@ -278,7 +274,6 @@ public class MainWindow {
             case "beginner": flagCount = 10; break;
             case "intermediate": flagCount = 25; break;
             case "expert": flagCount = 55; break;
-            default: flagCount = CELLS_COUNT_HEIGHT * CELLS_COUNT_WIDTH / 5;
         }
 
         Random r = new Random();
@@ -287,8 +282,9 @@ public class MainWindow {
             do {
                 x = 1 + r.nextInt(CELLS_COUNT_HEIGHT - 1);
                 y = 1 + r.nextInt(CELLS_COUNT_WIDTH - 1);
-                if (cells[x][y] == null)
+                if (cells[x][y] == null) {
                     break;
+                }
             } while (cells[x][y].name.equals("bomb"));
             cells[x][y] = new Cell(cloneImage(getImageView("bomb").getImage()), "bomb");
         }
@@ -299,33 +295,42 @@ public class MainWindow {
         if (cells[i][j] == null) {
             int count = 0;
             for (int k = i - 1; k <= i + 1; k++) {
-                while (k < 0)
+                while (k < 0) {
                     k++;
-                if (k >= CELLS_COUNT_HEIGHT)
+                }
+                if (k >= CELLS_COUNT_HEIGHT) {
                     break;
+                }
                 for (int l = j - 1; l <= j + 1; l++) {
-                    while (l < 0)
+                    while (l < 0) {
                         l++;
-                    if (l >= CELLS_COUNT_WIDTH)
+                    }
+                    if (l >= CELLS_COUNT_WIDTH) {
                         break;
+                    }
                     if (cells[k][l] != null) {
-                        if (cells[k][l].name.equals("bomb") || cells[k][l].isBombOnFlag)
+                        if (cells[k][l].name.equals("bomb") || cells[k][l].isBombOnFlag) {
                             count++;
+                        }
                     }
                 }
             }
             cells[i][j] = setNumber(count);
             if (cells[i][j].name.equals("zero")) {
                 for (int k = i - 1; k <= i + 1; k++) {
-                    while (k < 0)
+                    while (k < 0) {
                         k++;
-                    if (k >= CELLS_COUNT_HEIGHT)
+                    }
+                    if (k >= CELLS_COUNT_HEIGHT) {
                         break;
+                    }
                     for (int l = j - 1; l <= j + 1; l++) {
-                        while (l < 0)
+                        while (l < 0) {
                             l++;
-                        if (l >= CELLS_COUNT_WIDTH)
+                        }
+                        if (l >= CELLS_COUNT_WIDTH) {
                             break;
+                        }
                         initNumbers(k, l);
                     }
                 }
@@ -335,13 +340,14 @@ public class MainWindow {
 
     //repaint scene
     private void repaint() {
-        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++)
+        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++) {
             for (int j = 0; j < CELLS_COUNT_WIDTH; j++) {
                 if (cells[i][j] == null || cells[i][j].name.equals("bomb"))
-                    root.getChildren().add(createImageView(getImageView("field"),i,j,false));
+                    root.getChildren().add(createImageView(getImageView("field"), i, j, false));
                 else
-                    root.getChildren().add(createImageView(cells[i][j].image,i,j,false));
+                    root.getChildren().add(createImageView(cells[i][j].image, i, j, false));
             }
+        }
     }
 
     //per-pixel copy images
@@ -398,23 +404,23 @@ public class MainWindow {
 
     //end of game
     private void endOfGame(boolean isWin) {
-        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++)
+        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++) {
             for (int j = 0; j < CELLS_COUNT_WIDTH; j++) {
                 if (cells[i][j] == null) {
                     root.getChildren().add(createImageView(getImageView("field"), i, j, true));
-                }
-                else
-                if (cells[i][j].name.equals("right_flag") && !cells[i][j].isBombOnFlag) {
+                } else if (cells[i][j].name.equals("right_flag") && !cells[i][j].isBombOnFlag) {
                     root.getChildren().add(createImageView(getImageView("wrong_flag"), i, j, true));
-                }
-                else
+                } else
                     root.getChildren().add(createImageView(cells[i][j].image, i, j, true));
             }
+        }
         isEndOfGame = true;
-        if (isWin)
+        if (isWin) {
             smile.setImage(cloneImage(getImageView("win").getImage()).getImage());
-        else
+        }
+        else {
             smile.setImage(cloneImage(getImageView("oops").getImage()).getImage());
+        }
         if (timeline != null) {
             timeline.stop();
             timeline = null;
@@ -422,10 +428,11 @@ public class MainWindow {
     }
 
     private void newGame() {
-        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++)
+        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++) {
             for (int j = 0; j < CELLS_COUNT_WIDTH; j++) {
                 cells[i][j] = null;
             }
+        }
         if (timeline != null) {
             timeline.stop();
             timeline = null;
@@ -439,19 +446,23 @@ public class MainWindow {
 
     //check if it is available empty fields
     private boolean searchEmptyFields() {
-        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++)
-            for (int j = 0; j < CELLS_COUNT_WIDTH; j++)
-                if (cells[i][j] == null)
+        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++) {
+            for (int j = 0; j < CELLS_COUNT_WIDTH; j++) {
+                if (cells[i][j] == null) {
                     return true;
+                }
+            }
+        }
         return false;
     }
 
     //refresh all bombs
     private void refreshBombs(int k, int l) {
-        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++)
+        for (int i = 0; i < CELLS_COUNT_HEIGHT; i++) {
             for (int j = 0; j < CELLS_COUNT_WIDTH; j++) {
                 cells[i][j] = null;
             }
+        }
         initBombs();
         initNumbers(k, l);
         System.out.println("I refresh bombs");
@@ -460,11 +471,19 @@ public class MainWindow {
     private boolean isUnopenedBombs(int i, int j) {
         int count = 0;
         for (int k = i - 1; k <= i + 1; k++) {
-            while (k < 0) k++;
-            if (k >= CELLS_COUNT_HEIGHT) break;
+            while (k < 0) {
+                k++;
+            }
+            if (k >= CELLS_COUNT_HEIGHT) {
+                break;
+            }
             for (int l = j - 1; l <= j + 1; l++) {
-                while (l < 0) l++;
-                if (l >= CELLS_COUNT_WIDTH) break;
+                while (l < 0) {
+                    l++;
+                }
+                if (l >= CELLS_COUNT_WIDTH) {
+                    break;
+                }
                 if (cells[k][l] != null
                         && (cells[k][l].name.equals("bomb")
                         || (cells[k][l].name.equals("right_flag") && cells[k][l].isBombOnFlag))
@@ -492,23 +511,28 @@ public class MainWindow {
 
     private void hint(int i, int j) {
         for (int k = i - 1; k <= i + 1; k++) {
-            while (k < 0)
+            while (k < 0) {
                 k++;
-            if (k >= CELLS_COUNT_HEIGHT)
+            }
+            if (k >= CELLS_COUNT_HEIGHT) {
                 break;
+            }
             for (int l = j - 1; l <= j + 1; l++) {
-                while (l < 0)
+                while (l < 0) {
                     l++;
-                if (l >= CELLS_COUNT_WIDTH)
+                }
+                if (l >= CELLS_COUNT_WIDTH) {
                     break;
+                }
                 if (cells[k][l] == null) {
                     initNumbers(k, l);
                     repaint();
                 }
             }
         }
-        if (!searchEmptyFields())
-                endOfGame(true);
+        if (!searchEmptyFields()) {
+            endOfGame(true);
+        }
     }
 
     //add listener to all fields
@@ -527,8 +551,9 @@ public class MainWindow {
 
                 if (!isFirstClickLose) {
                     if (isFirstClick && cells[i][j] != null) {
-                        while (cells[i][j].name.equals("bomb"))
+                        while (cells[i][j].name.equals("bomb")) {
                             refreshBombs(i, j);
+                        }
                     }
                 }
                 isFirstClick = false;
@@ -536,20 +561,23 @@ public class MainWindow {
                 //if game is not ended
                 if (!isEndOfGame) {
                     if (isHints && ((MouseEvent) mouseEvent).getButton() == MouseButton.PRIMARY
-                            && ((MouseEvent) mouseEvent).getClickCount() == 2){
+                            && ((MouseEvent) mouseEvent).getClickCount() == 2) {
                         System.out.println("double click");
-                        if (!isUnopenedBombs(i,j))
+                        if (!isUnopenedBombs(i,j)) {
                             hint(i, j);
+                        }
                         return;
                     }
 
-                    if (timeline == null)
+                    if (timeline == null) {
                         startTimer();
+                    }
                     //if right click
                     if (((MouseEvent) mouseEvent).getButton() == MouseButton.SECONDARY) {
                         if (cells[i][j] != null && cells[i][j].name.equals("right_flag")) {
-                            if (cells[i][j].isBombOnFlag == false)
+                            if (cells[i][j].isBombOnFlag == false) {
                                 cells[i][j] = null;
+                            }
                             else {
                                 cells[i][j].image = cloneImage(getImageView("bomb").getImage());
                                 cells[i][j].isOpen = false;
@@ -557,28 +585,31 @@ public class MainWindow {
                             }
                             flagCount++;
                         }
-                        else
-                        if (flagCount > 0) {
-                            //if cell is empty -> create new cell with flag
-                            if (cells[i][j] == null) {
-                                cells[i][j] = new Cell(createImageView(getImageView("right_flag"), i, j, false), "right_flag");
-                                cells[i][j].isOpen = true;
-                                flagCount--;
-                            } else
-                                //if cell isn`t empty and there is the bomb -> change image to flag
-                                if (cells[i][j].name.equals("bomb")) {
-                                    cells[i][j].image = createImageView(getImageView("right_flag"), i, j, false);
-                                    cells[i][j].name = "right_flag";
-                                    cells[i][j].isBombOnFlag = true;
+                        else {
+                            if (flagCount > 0) {
+                                //if cell is empty -> create new cell with flag
+                                if (cells[i][j] == null) {
+                                    cells[i][j] = new Cell(createImageView(getImageView("right_flag"), i, j, false), "right_flag");
                                     cells[i][j].isOpen = true;
                                     flagCount--;
-                                }
+                                } else
+                                    //if cell isn`t empty and there is the bomb -> change image to flag
+                                    if (cells[i][j].name.equals("bomb")) {
+                                        cells[i][j].image = createImageView(getImageView("right_flag"), i, j, false);
+                                        cells[i][j].name = "right_flag";
+                                        cells[i][j].isBombOnFlag = true;
+                                        cells[i][j].isOpen = true;
+                                        flagCount--;
+                                    }
+                            }
                         }
 
-                        if (CELLS_COUNT_WIDTH < 16)
+                        if (CELLS_COUNT_WIDTH < 16) {
                             flagCountLabel.setText("" + flagCount);
-                        else
+                        }
+                        else {
                             flagCountLabel.setText("Flags:  " + flagCount);
+                        }
                         repaint();
                         return;
                     }
@@ -593,10 +624,12 @@ public class MainWindow {
                     }
 
                     if (!searchEmptyFields()) {
-                        if (!cells[i][j].name.equals("bomb"))
+                        if (!cells[i][j].name.equals("bomb")) {
                             endOfGame(true);
-                        else
+                        }
+                        else {
                             endOfGame(false);
+                        }
                     }
                 }
             }
@@ -616,18 +649,23 @@ public class MainWindow {
                         second[0] = 0;
                     }
                     String title = "";
-                    if (CELLS_COUNT_WIDTH > 15)
+                    if (CELLS_COUNT_WIDTH > 15) {
                         title = "Game time: ";
-                    if (minute[0] < 10)
-                        if (second[0] < 10)
+                    }
+                    if (minute[0] < 10) {
+                        if (second[0] < 10) {
                             timeLabel.setText(title + "0" + minute[0] + ":0" + second[0]);
-                        else
+                        } else {
                             timeLabel.setText(title + "0" + minute[0] + ":" + second[0]);
-                    else
-                    if (second[0] < 10)
-                        timeLabel.setText(title + minute[0] + ":0" + second[0]);
-                    else
-                        timeLabel.setText(title + minute[0] + ":" + second[0]);
+                        }
+                    }
+                    else {
+                        if (second[0] < 10) {
+                            timeLabel.setText(title + minute[0] + ":0" + second[0]);
+                        } else {
+                            timeLabel.setText(title + minute[0] + ":" + second[0]);
+                        }
+                    }
                 }));
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
